@@ -1,0 +1,29 @@
+version: "3"
+services:
+  goliltemp:
+    build:
+      context: ..
+      dockerfile: ./deployment/dockerfile
+    image: goliltemp
+    container_name: goelectrumclient
+    environment:
+      APP_NAME: $APP_NAME
+      VERSION: $CI_COMMIT_SHORT_SHA
+      PORT: $PORT
+      MONGO_DB_URI: $MONGO_DB_URI
+      TEST_MONGO_DB_URI: $TEST_MONGO_DB_URI
+      DB_NAME: $DB_NAME
+      ENVIRONMENT: $ENVIRONMENT
+      EXTERNAL_BASE_URL: $EXTERNAL_BASE_URL
+    expose:
+      - "$PORT"
+    ports:
+      - "$INTERNAL_PORT:$PORT"  
+    networks:
+      - app-network
+    restart: unless-stopped
+
+networks:
+    app-network:
+        external: true
+        name: app_network

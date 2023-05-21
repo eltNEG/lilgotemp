@@ -1,0 +1,35 @@
+############################
+# STEP 1 build executable binary
+############################
+FROM golang:1.18-alpine AS builder 
+# Install git.
+# Git is required for fetching the dependencies.
+RUN apk update && apk add --no-cache git
+
+RUN apk add build-base
+
+WORKDIR $GOPATH/src/waas
+
+COPY ./go.mod ./go.mod
+COPY ./go.sum ./go.sum
+
+
+# Fetch dependencies.
+RUN go mod download
+RUN go mod verify
+
+COPY ./src ./src
+
+# Build the binary.
+RUN go build -ldflags="-w -s" -o /go/bin/app ./src/main
+
+############################
+# STEP 2 build a small image
+############################
+FROM alpine
+
+# Copy our static executable.
+COPY --from=builder /go/bin/app /go/bin/app
+
+# Run the hello binary.
+ENTRYPOINT ["/go/bin/app"]
